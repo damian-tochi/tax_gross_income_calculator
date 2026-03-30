@@ -22,12 +22,12 @@ export function calculateTax(grossIncome, annualRent = 0, deductPension = true, 
   let totalTax = 0;
   let taxBreakdown = [];
   let bandNames = [
-    '₦0 - ₦800k (0%)',
-    '₦800k - ₦3m (15%)',
-    '₦3m - ₦12m (18%)',
-    '₦12m - ₦25m (21%)',
-    '₦25m - ₦50m (23%)',
-    'Above ₦50m (25%)'
+    "₦0 - ₦800k (0%)",
+    "₦800k - ₦3m (15%)",
+    "₦3m - ₦12m (18%)",
+    "₦12m - ₦25m (21%)",
+    "₦25m - ₦50m (23%)",
+    "Above ₦50m (25%)"
   ];
 
   for (let i = 0; i < bands.length; i++) {
@@ -63,4 +63,32 @@ export function calculateTax(grossIncome, annualRent = 0, deductPension = true, 
     netMonthly,
     taxBreakdown
   };
+}
+
+export function grossUpFromNet(targetNetAnnual, annualRent = 0, deductPension = true, deductNHF = true) {
+  let target = Number(targetNetAnnual) || 0;
+  if (target <= 0) return calculateTax(0, annualRent, deductPension, deductNHF);
+
+  let low = target;
+  let high = target * 5;
+  let tolerance = 0.01;
+  let bestGross = target;
+
+  for (let i = 0; i < 100; i++) {
+    let mid = (low + high) / 2;
+    let result = calculateTax(mid, annualRent, deductPension, deductNHF);
+    
+    if (Math.abs(result.netAnnual - target) < tolerance) {
+      bestGross = mid;
+      break;
+    }
+    
+    if (result.netAnnual < target) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  return calculateTax(bestGross, annualRent, deductPension, deductNHF);
 }
