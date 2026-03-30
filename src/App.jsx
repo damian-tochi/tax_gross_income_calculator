@@ -1,11 +1,14 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { InputForm } from "./components/InputForm";
 import { ResultCard } from "./components/ResultCard";
+import { TaxAdvisoryDialog } from "./components/TaxAdvisoryDialog";
 import { calculateTax, grossUpFromNet } from "./TaxLogic";
 import "./index.css";
 
 function App() {
   const [calculationMode, setCalculationMode] = useState("gross");
+  const [isAdvisoryOpen, setIsAdvisoryOpen] = useState(false);
+  const [hasShownAdvisory, setHasShownAdvisory] = useState(false);
   
   const [formData, setFormData] = useState({
     timeframe: "annual",
@@ -36,6 +39,15 @@ function App() {
     }
   }, [formData, calculationMode]);
 
+  useEffect(() => {
+    if (results.totalTax > 50000 && !hasShownAdvisory) {
+      setHasShownAdvisory(true);
+      setIsAdvisoryOpen(true);
+    } else if (results.totalTax <= 50000) {
+      setHasShownAdvisory(false);
+    }
+  }, [results.totalTax, hasShownAdvisory]);
+
   return (
     <div className="app-container">
       <header className="header">
@@ -50,6 +62,13 @@ function App() {
         onModeChange={setCalculationMode} 
       />
       <ResultCard results={results} mode={calculationMode} />
+      
+      {isAdvisoryOpen && results && (
+        <TaxAdvisoryDialog 
+          results={results} 
+          onClose={() => setIsAdvisoryOpen(false)} 
+        />
+      )}
     </div>
   );
 }
