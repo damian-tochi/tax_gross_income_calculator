@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from "react";
 import { InputForm } from "./components/InputForm";
 import { ResultCard } from "./components/ResultCard";
 import { TaxAdvisoryDialog } from "./components/TaxAdvisoryDialog";
+import { InfoPanel } from "./components/InfoPanel";
+import { Info } from "lucide-react";
 import { calculateTax, grossUpFromNet } from "./TaxLogic";
 import "./index.css";
 
@@ -9,6 +11,7 @@ function App() {
   const [calculationMode, setCalculationMode] = useState("gross");
   const [isAdvisoryOpen, setIsAdvisoryOpen] = useState(false);
   const [hasShownAdvisory, setHasShownAdvisory] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   
   const [formData, setFormData] = useState({
     timeframe: "annual",
@@ -51,8 +54,11 @@ function App() {
   return (
     <div className="app-container">
       <header className="header">
-        <h1>Naija Tax Calculator</h1>
+        <h1>Tax Deduction Estimator</h1>
         <p>2025/2026 Personal Income Tax Act</p>
+        <button className="info-trigger-mobile mobile-only" onClick={() => setShowInfoModal(true)}>
+          <Info size={18} /> What is {calculationMode === 'gross' ? 'Gross' : 'Net'}?
+        </button>
       </header>
       
       <InputForm 
@@ -61,7 +67,29 @@ function App() {
         mode={calculationMode} 
         onModeChange={setCalculationMode} 
       />
-      <ResultCard results={results} mode={calculationMode} />
+      
+      <div className="main-result-stack">
+        <ResultCard results={results} mode={calculationMode} />
+        
+        {/* Mobile-only summary card that appears after calculation */}
+        <InfoPanel 
+          mode={calculationMode} 
+          results={results} 
+          isMobileSummary={true} 
+        />
+      </div>
+      
+      {/* Desktop-only sidebar panel */}
+      <InfoPanel mode={calculationMode} results={results} />
+
+      {showInfoModal && (
+        <InfoPanel 
+          mode={calculationMode} 
+          results={results}
+          isMobileTriggered={true} 
+          onClose={() => setShowInfoModal(false)} 
+        />
+      )}
       
       {isAdvisoryOpen && results && (
         <TaxAdvisoryDialog 
